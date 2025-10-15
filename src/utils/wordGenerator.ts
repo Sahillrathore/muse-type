@@ -16,11 +16,51 @@ const commonWords = [
   "young", "important", "few", "public", "bad", "same", "able", "right", "social", "already"
 ];
 
-export const generateWords = (count: number = 50): string[] => {
+const adjectives = [
+  "happy", "sad", "quick", "slow", "bright", "dark", "warm", "cold", "big", "small",
+  "tall", "short", "wide", "narrow", "thick", "thin", "heavy", "light", "strong", "weak",
+  "fast", "slow", "loud", "quiet", "smooth", "rough", "soft", "hard", "clean", "dirty",
+  "new", "old", "young", "ancient", "modern", "fresh", "stale", "sweet", "bitter", "sour",
+  "beautiful", "ugly", "pretty", "handsome", "gorgeous", "lovely", "charming", "elegant", "graceful", "clumsy",
+  "brave", "cowardly", "bold", "timid", "confident", "shy", "proud", "humble", "honest", "dishonest",
+  "kind", "cruel", "gentle", "harsh", "friendly", "hostile", "polite", "rude", "generous", "selfish",
+  "wise", "foolish", "smart", "stupid", "clever", "dull", "bright", "dim", "sharp", "blunt"
+];
+
+const numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+const characters = [
+  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+  "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+  "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "=", "+",
+  "[", "]", "{", "}", ";", ":", "'", '"', ",", ".", "<", ">", "/", "?"
+];
+
+export type TestMode = 'words' | 'numbers' | 'adjectives' | 'characters';
+
+export const generateWords = (count: number = 50, mode: TestMode = 'words'): string[] => {
   const words: string[] = [];
+  
+  let sourceArray: string[];
+  switch (mode) {
+    case 'numbers':
+      sourceArray = numbers;
+      break;
+    case 'adjectives':
+      sourceArray = adjectives;
+      break;
+    case 'characters':
+      sourceArray = characters;
+      break;
+    case 'words':
+    default:
+      sourceArray = commonWords;
+      break;
+  }
+  
   for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * commonWords.length);
-    words.push(commonWords[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * sourceArray.length);
+    words.push(sourceArray[randomIndex]);
   }
   return words;
 };
