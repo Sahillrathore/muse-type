@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { generateWords, TestMode } from '@/utils/wordGenerator';
+import { generateRow, TestMode } from '@/utils/wordGenerator';
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TestResults from './TestResults';
@@ -37,19 +37,19 @@ const TypingTest = () => {
   const [keystrokeData, setKeystrokeData] = useState<KeystrokeData[]>([]);
   const [keyAccuracy, setKeyAccuracy] = useState<Map<string, KeyAccuracy>>(new Map());
   const [startTime, setStartTime] = useState<number>(0);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setWords(generateWords(100, selectedMode));
+    setWords(generateRow(100, selectedMode));
   }, [selectedMode]);
 
   useEffect(() => {
     if (status === 'running' && timeLeft > 0) {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
-        
+
         // Record keystroke data every second
         const currentWPM = calculateWPM();
         const currentAccuracy = calculateAccuracy();
@@ -80,7 +80,7 @@ const TypingTest = () => {
   };
 
   const handleRestart = () => {
-    setWords(generateWords(100, selectedMode));
+    setWords(generateRow(100, selectedMode));
     setCurrentWordIndex(0);
     setCurrentCharIndex(0);
     setInput('');
@@ -93,6 +93,9 @@ const TypingTest = () => {
     setKeyAccuracy(new Map());
     inputRef.current?.focus();
   };
+
+  // put this near your other helpers
+  const isLetter = (k: string) => /^[a-zA-Z]$/.test(k);
 
   const handleModeChange = (mode: TestMode) => {
     setSelectedMode(mode);
@@ -108,18 +111,23 @@ const TypingTest = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (status === 'finished') return;
-    
+
+    // ✅ Only start when a letter key is pressed
     if (status === 'idle') {
-      handleStart();
+      if (isLetter(e.key)) {
+        handleStart(); // will also focus input
+      } else {
+        // ignore everything else until a letter starts the test
+        e.preventDefault();
+        return;
+      }
     }
 
     const currentWord = words[currentWordIndex];
-    
+
     if (e.key === ' ') {
       e.preventDefault();
-      
       if (input.length > 0) {
-        // Move to next word
         setCurrentWordIndex(currentWordIndex + 1);
         setCurrentCharIndex(0);
         setInput('');
@@ -132,8 +140,7 @@ const TypingTest = () => {
         const newInput = input.slice(0, -1);
         setInput(newInput);
         setCurrentCharIndex(Math.max(0, currentCharIndex - 1));
-        
-        // Remove the typed character from tracking
+
         const key = `${currentWordIndex}-${currentCharIndex - 1}`;
         const newTypedChars = { ...typedChars };
         delete newTypedChars[key];
@@ -142,28 +149,27 @@ const TypingTest = () => {
       return;
     }
 
-    // Only handle printable characters
+    // Only handle printable single characters
     if (e.key.length === 1) {
       const newInput = input + e.key;
       setInput(newInput);
-      
+
       const isCorrect = currentWord[currentCharIndex] === e.key;
       const key = `${currentWordIndex}-${currentCharIndex}`;
-      
+
       setTypedChars({
         ...typedChars,
-        [key]: isCorrect ? 'correct' : 'incorrect'
+        [key]: isCorrect ? 'correct' : 'incorrect',
       });
 
-      // Track key accuracy
       const keyChar = e.key;
       const currentKeyAccuracy = keyAccuracy.get(keyChar) || {
         key: keyChar,
         correct: 0,
         incorrect: 0,
-        accuracy: 0
+        accuracy: 0,
       };
-      
+
       if (isCorrect) {
         setCorrectChars(correctChars + 1);
         currentKeyAccuracy.correct += 1;
@@ -171,17 +177,18 @@ const TypingTest = () => {
         setIncorrectChars(incorrectChars + 1);
         currentKeyAccuracy.incorrect += 1;
       }
-      
+
       const total = currentKeyAccuracy.correct + currentKeyAccuracy.incorrect;
       currentKeyAccuracy.accuracy = (currentKeyAccuracy.correct / total) * 100;
-      
+
       const newKeyAccuracy = new Map(keyAccuracy);
       newKeyAccuracy.set(keyChar, currentKeyAccuracy);
       setKeyAccuracy(newKeyAccuracy);
-      
+
       setCurrentCharIndex(currentCharIndex + 1);
     }
   };
+
 
   const calculateWPM = () => {
     const timeElapsed = selectedTime - timeLeft;
@@ -216,7 +223,7 @@ const TypingTest = () => {
       tabIndex={0}
       onKeyDown={handleKeyPress}
     >
-      <div className="w-full max-w-4xl space-y-8">
+      <div className="w-full max-w-6xl space-y-8">
         {/* Mode Selector */}
         <div className="flex items-center justify-center">
           <ModeSelector
@@ -233,40 +240,13 @@ const TypingTest = () => {
             onTimeChange={handleTimeChange}
             disabled={status === 'running'}
           />
-          
+
           <div className="flex items-center gap-6">
             <div className="text-4xl font-bold text-primary tabular-nums">
               {timeLeft}
             </div>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRestart}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw className="h-5 w-5" />
-            </Button>
           </div>
         </div>
-
-        {/* Live Stats */}
-        {status === 'running' && (
-          <div className="flex gap-8 text-sm text-muted-foreground">
-            <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wider">WPM</div>
-              <div className="text-2xl font-bold text-foreground tabular-nums">
-                {calculateWPM()}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wider">Accuracy</div>
-              <div className="text-2xl font-bold text-foreground tabular-nums">
-                {calculateAccuracy()}%
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Words Display */}
         <WordDisplay
@@ -283,15 +263,26 @@ const TypingTest = () => {
           type="text"
           className="typing-input"
           value={input}
-          onChange={() => {}}
+          onChange={() => { }}
           autoComplete="off"
           autoCapitalize="off"
           autoCorrect="off"
         />
 
+        <div className='flex justify-center'>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRestart}
+            className="text-muted-foreground hover:text-foreground mx-auto"
+          >
+            <RotateCcw className="h-5 w-5" />
+          </Button>
+        </div>
+
         {/* Instruction */}
         {status === 'idle' && (
-          <div className="text-center text-muted-foreground text-sm animate-fade-in">
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 transform text-center text-muted-foreground text-sm animate-fade-in pointer-events-none">
             Click here or start typing to begin the test
           </div>
         )}

@@ -36,31 +36,48 @@ const characters = [
   "[", "]", "{", "}", ";", ":", "'", '"', ",", ".", "<", ">", "/", "?"
 ];
 
-export type TestMode = 'words' | 'numbers' | 'adjectives' | 'characters';
+// utils/wordGenerator.ts
 
-export const generateWords = (count: number = 50, mode: TestMode = 'words'): string[] => {
-  const words: string[] = [];
-  
-  let sourceArray: string[];
-  switch (mode) {
-    case 'numbers':
-      sourceArray = numbers;
-      break;
-    case 'adjectives':
-      sourceArray = adjectives;
-      break;
-    case 'characters':
-      sourceArray = characters;
-      break;
-    case 'words':
-    default:
-      sourceArray = commonWords;
-      break;
-  }
-  
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * sourceArray.length);
-    words.push(sourceArray[randomIndex]);
-  }
-  return words;
+export type TestMode = 'words' | 'numbers' | 'adjectives' | 'characters' | 'punctuation';
+
+const YEAR_POOL = Array.from({ length: 90 }, (_, i) => (1935 + i).toString()); // 1935–2024
+
+const rand = (n: number) => Math.floor(Math.random() * n);
+
+// attach punctuation to a word (sometimes as a hyphen token by itself)
+const punctuate = (w: string) => {
+  const roll = Math.random();
+  if (roll < 0.25) return `${w}.`;
+  if (roll < 0.45) return `${w},`;
+  if (roll < 0.55) return `-`;          // standalone hyphen
+  if (roll < 0.70) return `'${w}`;      // leading apostrophe
+  if (roll < 0.85) return `${w}'s`;     // possessive
+  return w;
 };
+
+export const generateRow = (count = 12, mode: TestMode = 'words'): string[] => {
+  const row: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let token = commonWords[rand(commonWords.length)];
+
+    if (mode === 'adjectives') token = adjectives[rand(adjectives.length)];
+    if (mode === 'characters') token = characters[rand(characters.length)];
+
+    if (mode === 'numbers') {
+      // ~1 in 4 tokens is a number (or year)
+      if (Math.random() < 0.25) {
+        token = Math.random() < 0.6 ? YEAR_POOL[rand(YEAR_POOL.length)] : String(rand(9999));
+      }
+    }
+    if (mode === 'punctuation') {
+      // 35% chance to add/replace with punctuation form
+      if (Math.random() < 0.35) token = punctuate(token);
+    }
+
+    row.push(token);
+  }
+  return row;
+};
+
+// keep your existing commonWords/adjectives/characters arrays below…
+
