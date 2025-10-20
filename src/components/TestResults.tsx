@@ -38,7 +38,7 @@ const TestResults = ({
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8">
       <div className="w-full max-w-5xl space-y-8 text-center">
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-muted-foreground">Test Complete</h2>
+          <h2 className="text-2xl font-semibold text-muted-foreground">Test Analysis</h2>
           
           <div className="grid grid-cols-2 gap-8 mt-8">
             <div className="space-y-2">
