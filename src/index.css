@@ -73,10 +73,10 @@ All colors MUST be HSL.
     @apply relative;
   }
 
-  .word-char.current::after {
+  /* .word-char.current::after {
     content: '';
     @apply absolute left-0 top-0 h-full w-0.5 bg-primary animate-pulse;
-  }
+  } */
 
   .typing-input {
     @apply absolute opacity-0 pointer-events-none;
