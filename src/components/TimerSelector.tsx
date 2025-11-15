@@ -37,7 +37,7 @@ const TimerSelector = ({ selectedTime, onTimeChange, disabled }: TimerSelectorPr
             font-mono text-sm
             ${selectedTime === time 
               ? 'bg-primary text-primary-foreground' 
-              : 'text-muted-foreground hover:text-foreground'
+              : 'text-muted-foreground hover:text-zinc-800'
             }
           `}
         >
@@ -77,7 +77,7 @@ const TimerSelector = ({ selectedTime, onTimeChange, disabled }: TimerSelectorPr
             font-mono text-sm
             ${isCustomSelected
               ? 'bg-primary text-primary-foreground' 
-              : 'text-muted-foreground hover:text-foreground'
+              : 'text-muted-foreground hover:text-zinc-800'
             }
           `}
         >
