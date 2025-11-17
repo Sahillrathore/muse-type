@@ -152,7 +152,7 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
                 if (el) wordElsRef.current.set(wordIdx, el);
                 else wordElsRef.current.delete(wordIdx);
               }}
-              className={`relative transition-opacity ${isPastWord ? 'opacity-30' : 'opacity-100'}`}
+              className={`relative transition-opacity ${isPastWord ? 'opacity-30' : 'opacity-50'}`}
               style={{ display: 'flex', alignItems: 'center' }}
             >
               {word.split('').map((char, charIdx) => {

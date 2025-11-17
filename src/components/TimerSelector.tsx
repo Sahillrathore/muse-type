@@ -6,9 +6,11 @@ interface TimerSelectorProps {
   selectedTime: number;
   onTimeChange: (time: number) => void;
   disabled?: boolean;
+  selectedMode: string;
+  onModeChange: any;
 }
 
-const TimerSelector = ({ selectedTime, onTimeChange, disabled }: TimerSelectorProps) => {
+const TimerSelector = ({ selectedTime, onTimeChange, disabled, selectedMode, onModeChange }: TimerSelectorProps) => {
   const times = [15, 30, 60];
   const [customTime, setCustomTime] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -25,7 +27,7 @@ const TimerSelector = ({ selectedTime, onTimeChange, disabled }: TimerSelectorPr
   const isCustomSelected = !times.includes(selectedTime);
 
   return (
-    <div className="flex gap-2 items-center">
+    <div className="flex gap-1 items-center">
       {times.map((time) => (
         <Button
           key={time}
