@@ -131,7 +131,6 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
 
   return (
     <div className="relative bg-card rounded-lg p-4 h-48 overflow-hidden" ref={containerRef}>
-      {/* wrapper is the element that is translated; make it position:relative so caret can be absolute inside it */}
       <div
         ref={wrapperRef}
         className="flex flex-wrap gap-x-3 gap-y-2 text-3xl leading-relaxed"
@@ -152,20 +151,19 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
                 if (el) wordElsRef.current.set(wordIdx, el);
                 else wordElsRef.current.delete(wordIdx);
               }}
-              className={`relative transition-opacity ${isPastWord ? 'opacity-30' : 'opacity-50'}`}
+              className={`relative transition-opacity ${isPastWord ? 'opacity-80' : 'opacity-60'}`}
               style={{ display: 'flex', alignItems: 'center' }}
             >
               {word.split('').map((char, charIdx) => {
-                // const key = `${wordIdx}-${charIdx}`;
                 const key = `${wordIdx}-${charIdx}`;
                 const typedData = typedChars[key];
-                const typedStatus = typedData?.status; // Get the status from the object
+                const typedStatus = typedData?.status;
                 const isCurrent = isCurrentWord && charIdx === currentCharIndex;
 
                 let className = 'word-char ';
                 if (isCurrent) className += 'current ';
-                if (typedStatus === 'correct') className += 'correct'; // Use typedStatus
-                else if (typedStatus === 'incorrect') className += 'incorrect'; // Use typedStatus
+                if (typedStatus === 'correct') className += 'correct ';
+                else if (typedStatus === 'incorrect') className += 'incorrect ';
 
                 return (
                   <span
@@ -185,7 +183,7 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
               {getExtraTypedKeysForWord(wordIdx).map((extraKey) => {
                 const typedData = typedChars[extraKey];
                 const typedStatus = typedData?.status;
-                const typedChar = typedData?.char; // <-- Get the actual typed char!
+                const typedChar = typedData?.char;
 
                 return (
                   <span
@@ -195,9 +193,8 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
                       else charElsRef.current.delete(extraKey);
                     }}
                     className={`word-extra ${typedStatus === 'incorrect' ? 'incorrect' : ''}`}
-                    // style={{ whiteSpace: 'pre' }}
                   >
-                    {typedChar} {/* <-- Render the char, not '?' */}
+                    {typedChar}
                   </span>
                 );
               })}
@@ -205,7 +202,6 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
           );
         })}
 
-        {/* caret lives inside the wrapper so it translates with the wrapper transform */}
         {showCaret && (
           <div
             aria-hidden
@@ -232,9 +228,15 @@ const WordDisplay: React.FC<WordDisplayProps> = ({
           position: relative;
           padding: 0 1px;
         }
-        .word-char.correct { color: #f9fafb; }   /* white-ish */
+        .word-char.correct { color: #ffff; }   /* white-ish */
         .word-char.incorrect { color: #ef4444; } /* red */
         .word-extra { color: #ef4444; opacity: 0.95; }
+
+        /* <= ADD THIS: make current char white at 80% opacity */
+        .word-char.current {
+          color: rgba(255,255,255) !important;
+        }
+
       `}</style>
     </div>
   );

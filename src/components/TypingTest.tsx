@@ -255,7 +255,7 @@ const TypingTest = () => {
     >
       <div className="w-full max-w-6xl space-y-8">
 
-        <div className="flex items-center justify-center gap-1 mb-14">
+        <div className="flex items-center justify-center gap-1 mb-12">
 
           <div className={`${status === 'running' && 'opacity-0'} flex items-center`}>
             <ModeSelector

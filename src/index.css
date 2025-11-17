@@ -82,3 +82,7 @@ All colors MUST be HSL.
     @apply absolute opacity-0 pointer-events-none;
   }
 }
+
+.word-char.current {
+  color: rgba(255,255,255,0.8);
+}
