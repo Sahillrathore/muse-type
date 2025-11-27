@@ -6,8 +6,8 @@ const LEVELS = [
     id: 1,
     name: "Level 1: Warm-up",
     words: ["cat", "dog", "sun", "star", "ship", "code", "grid"],
-    spawnInterval: 1600,
-    speed: 60,
+    spawnInterval: 2000,
+    speed: 50,
     requiredKills: 12,
   },
   {
@@ -15,7 +15,7 @@ const LEVELS = [
     name: "Level 2: Faster",
     words: ["react", "space", "rocket", "planet", "galaxy", "typing"],
     spawnInterval: 1400,
-    speed: 85,
+    speed: 65,
     requiredKills: 20,
   },
   {
@@ -31,7 +31,7 @@ const LEVELS = [
       "blackhole",
     ],
     spawnInterval: 1100,
-    speed: 110,
+    speed: 80,
     requiredKills: 30,
   },
 ];
@@ -61,7 +61,7 @@ const SpaceTypingGame = () => {
   const [score, setScore] = useState(0);
   const [levelIndex, setLevelIndex] = useState(0);
   const [killsThisLevel, setKillsThisLevel] = useState(0);
-  const [lives, setLives] = useState(3);
+  const [lives, setLives] = useState(5);
   const [gameOver, setGameOver] = useState(false);
 
   // "refs" for game objects
@@ -72,6 +72,10 @@ const SpaceTypingGame = () => {
   const animationFrameRef = useRef(null);
   const shipXRef = useRef(0);
   const livesRef = useRef(lives);
+
+  // NEW:
+  const lasersRef = useRef([]);      // bullets
+  const shipRecoilRef = useRef(0);   // recoil animation factor
 
   // init ship position
   useEffect(() => {
@@ -121,6 +125,9 @@ const SpaceTypingGame = () => {
         levelIndex,
         setLevelIndex,
         setGameOver,
+        // NEW:
+        lasersRef,
+        shipRecoilRef,
       });
 
       drawGame(canvas, ctx, {
@@ -131,6 +138,9 @@ const SpaceTypingGame = () => {
         shipX: shipXRef.current,
         activeTargetId: activeTargetRef.current,
         gameOver,
+        // NEW:
+        lasers: lasersRef.current,
+        shipRecoil: shipRecoilRef.current,
       });
 
       animationFrameRef.current = requestAnimationFrame(loop);
@@ -148,18 +158,49 @@ const SpaceTypingGame = () => {
 
   // typing logic: focus stays on current word
   useEffect(() => {
+    const fireBulletAtWord = (word) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const shipY = canvas.height - 40;
+      const startX = shipXRef.current;
+      const startY = shipY;
+
+      // Aim roughly at the center of the word
+      const targetX = word.x;
+      const targetY = word.y;
+
+      const dx = targetX - startX;
+      const dy = targetY - startY;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+      const speed = 650; // px per second
+      const vx = (dx / len) * speed;
+      const vy = (dy / len) * speed;
+
+      lasersRef.current.push({
+        startX: shipXRef.current,
+        startY: shipY,
+        targetWordId: word.id,
+        progress: 0,
+        duration: 150, // ms to travel
+      });
+
+      // trigger recoil
+      shipRecoilRef.current = 1;
+    };
+
     const handleKeyDown = (e) => {
       if (gameOver) return;
 
       const key = e.key.toLowerCase();
-      if (!/^[a-z]$/.test(key)) return; // letters only
+      if (!/^[a-z]$/.test(key)) return;
 
       const words = wordsRef.current;
       if (!words.length) return;
 
       const activeId = activeTargetRef.current;
 
-      // case 1: already targeting a word
       if (activeId != null) {
         const w = words.find((word) => word.id === activeId);
         if (!w) {
@@ -171,6 +212,8 @@ const SpaceTypingGame = () => {
           const expected = w.text[w.typedIndex].toLowerCase();
           if (key === expected) {
             w.typedIndex++;
+            fireBulletAtWord(w); // 🔥 fire here
+
             if (w.typedIndex >= w.text.length) {
               destroyWordAndReward(w.id, {
                 wordsRef,
@@ -185,20 +228,18 @@ const SpaceTypingGame = () => {
           }
         }
       } else {
-        // case 2: no active target → choose a word whose next letter matches
         const candidates = words.filter((w) => {
           if (w.typedIndex >= w.text.length) return false;
-          return (
-            w.text[w.typedIndex].toLowerCase() === key
-          );
+          return w.text[w.typedIndex].toLowerCase() === key;
         });
 
         if (candidates.length) {
-          // choose one closest to bottom (higher y)
           candidates.sort((a, b) => b.y - a.y);
           const w = candidates[0];
           activeTargetRef.current = w.id;
           w.typedIndex++;
+          fireBulletAtWord(w); // 🔥 fire on first letter
+
           if (w.typedIndex >= w.text.length) {
             destroyWordAndReward(w.id, {
               wordsRef,
@@ -215,9 +256,9 @@ const SpaceTypingGame = () => {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () =>
-      window.removeEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameOver, levelIndex]);
+
 
   const restartGame = () => {
     wordsRef.current = [];
@@ -225,14 +266,14 @@ const SpaceTypingGame = () => {
     lastSpawnTimeRef.current = 0;
     lastFrameTimeRef.current = null;
     setScore(0);
-    setLives(3);
+    setLives(5);
     setKillsThisLevel(0);
     setLevelIndex(0);
     setGameOver(false);
   };
 
   return (
-    <div style={{width: '30rem'}} className="h-[90vh] bg-gradient-to-b from-slate-900 via-slate-950 to-black rounded-2xl border border-slate-700/60 shadow-[0_20px_80px_rgba(15,23,42,0.9)] flex flex-col overflow-hidden">
+    <div style={{ width: '30rem' }} className="mx-auto h-[90vh] bg-gradient-to-b from-slate-900 via-slate-950 to-black rounded-2xl border border-slate-700/60 shadow-[0_20px_80px_rgba(15,23,42,0.9)] flex flex-col overflow-hidden">
       {/* HUD */}
       <div className="flex items-center absolute bottom-0 left-0 z-50 gap-4 px-4 py-3 border-b border-slate-700/70 bg-slate-900/70 backdrop-blur">
         <div className="flex flex-col">
@@ -258,11 +299,10 @@ const SpaceTypingGame = () => {
             Lives
           </span>
           <span
-            className={`text-sm font-semibold ${
-              lives <= 1
-                ? "text-red-400"
-                : "text-rose-300"
-            }`}
+            className={`text-sm font-semibold ${lives <= 1
+              ? "text-red-400"
+              : "text-rose-300"
+              }`}
           >
             {lives}
           </span>
@@ -280,7 +320,7 @@ const SpaceTypingGame = () => {
       <div className="relative flex-1">
         <canvas
           ref={canvasRef}
-          style={{height: '90vh'}}
+          style={{ height: '90vh' }}
           className="w-full block"
         />
         {gameOver && (
@@ -330,15 +370,15 @@ function updateGame(
     levelIndex,
     setLevelIndex,
     setGameOver,
+    // NEW:
+    lasersRef,
+    shipRecoilRef,
   }
 ) {
   const words = wordsRef.current;
 
   // spawn new words
-  if (
-    timestamp - lastSpawnTimeRef.current >
-    level.spawnInterval
-  ) {
+  if (timestamp - lastSpawnTimeRef.current > level.spawnInterval) {
     const newWord = createWord(level, canvas.width);
     words.push(newWord);
     lastSpawnTimeRef.current = timestamp;
@@ -350,7 +390,25 @@ function updateGame(
     w.y += dy;
   }
 
-  // check words hitting bottom
+  // --- NEW: update bullets progress ---
+  const bullets = lasersRef.current;
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.progress += dt / b.duration; // dt ms / duration ms
+
+    if (b.progress >= 1.05) {
+      // a bit after reaching target, remove
+      bullets.splice(i, 1);
+    }
+  }
+
+  // --- NEW: decay recoil ---
+  shipRecoilRef.current = Math.max(
+    0,
+    shipRecoilRef.current - dt * 0.005
+  );
+
+  // check words hitting bottom (same as before)
   const bottomY = canvas.height - 50;
   let lostLife = false;
 
@@ -386,6 +444,9 @@ function drawGame(
     shipX,
     activeTargetId,
     gameOver,
+    // NEW:
+    lasers,
+    shipRecoil,
   }
 ) {
   const w = canvas.width;
@@ -394,8 +455,11 @@ function drawGame(
 
   drawSpaceGridBackground(ctx, w, h);
 
-  // ship
-  const shipY = h - 40;
+  // ----- Ship with recoil -----
+  const baseShipY = h - 40;
+  const shipYOffset = -6 * shipRecoil;
+  const shipY = baseShipY + shipYOffset;
+
   ctx.save();
   ctx.translate(shipX, shipY);
   ctx.beginPath();
@@ -405,11 +469,45 @@ function drawGame(
   ctx.closePath();
   ctx.fillStyle = "#22d3ee";
   ctx.shadowColor = "#22d3ee";
+  ctx.shadowBlur = 16;
+  ctx.fill();
+
+  // small flame
+  ctx.beginPath();
+  ctx.moveTo(-6, 10);
+  ctx.lineTo(0, 18 + 6 * shipRecoil);
+  ctx.lineTo(6, 10);
+  ctx.closePath();
+  ctx.fillStyle = "#f97316";
+  ctx.shadowColor = "#fb923c";
   ctx.shadowBlur = 12;
   ctx.fill();
   ctx.restore();
 
-  // words
+  // ----- Bullets (homing) -----
+  ctx.save();
+  ctx.strokeStyle = "rgba(56,189,248,0.95)";
+  ctx.lineWidth = 2;
+  ctx.shadowColor = "rgba(56,189,248,0.9)";
+  ctx.shadowBlur = 12;
+
+  lasers.forEach((b) => {
+    const word = words.find((wrd) => wrd.id === b.targetWordId);
+    if (!word) return;
+
+    const t = Math.min(b.progress, 1);
+    const x = b.startX + (word.x - b.startX) * t;
+    const y = b.startY + (word.y - b.startY) * t;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y + 8);
+    ctx.lineTo(x, y - 12);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+
+  // ----- Words (unchanged) -----
   ctx.font = "18px monospace";
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
@@ -421,28 +519,21 @@ function drawGame(
     const typed = fullText.slice(0, wrd.typedIndex);
     const remaining = fullText.slice(wrd.typedIndex);
 
-    // measure full width to center
     const fullWidth = ctx.measureText(fullText).width;
     const startX = wrd.x - fullWidth / 2;
     const y = wrd.y;
 
-    // typed part
     ctx.fillStyle = isActive ? "#22c55e" : "#38bdf8";
     ctx.fillText(typed, startX, y);
 
-    // remaining part
     const typedWidth = ctx.measureText(typed).width;
     ctx.fillStyle = "#e5e7eb";
     ctx.fillText(remaining, startX + typedWidth, y);
 
-    // underline for active target
     if (isActive) {
       ctx.beginPath();
       ctx.moveTo(startX, y + 12);
-      ctx.lineTo(
-        startX + typedWidth,
-        y + 12
-      );
+      ctx.lineTo(startX + typedWidth, y + 12);
       ctx.strokeStyle = "rgba(34,197,94,0.9)";
       ctx.lineWidth = 2;
       ctx.stroke();
