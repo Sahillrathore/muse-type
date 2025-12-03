@@ -5,7 +5,7 @@ const LEVELS = [
   {
     id: 1,
     name: "Level 1: Warm-up",
-    words: ["cat", "dog", "sun", "star", "ship", "code", "grid"],
+    words: ["cat", "dog", "sun", "star", "ship", "code", "grid", "day", "light", "swear"],
     spawnInterval: 2000,
     speed: 50,
     requiredKills: 12,
@@ -13,7 +13,7 @@ const LEVELS = [
   {
     id: 2,
     name: "Level 2: Faster",
-    words: ["react", "space", "rocket", "planet", "galaxy", "typing"],
+    words: ["react", "space", "rocket", "planet", "galaxy", "typing", "system", "asterik", "developer", "cellphone", "sticker", "donut", "xavier", "winnner", "jailbreak"],
     spawnInterval: 1400,
     speed: 65,
     requiredKills: 20,
@@ -29,6 +29,19 @@ const LEVELS = [
       "gravity",
       "satellite",
       "blackhole",
+      // added words
+      "nebula",
+      "quantum",
+      "orbit",
+      "cosmos",
+      "pulsar",
+      "meteor",
+      "galaxy",
+      "radiation",
+      "comet",
+      "singularity",
+      "telemetry",
+      "chronometer"
     ],
     spawnInterval: 1100,
     speed: 80,

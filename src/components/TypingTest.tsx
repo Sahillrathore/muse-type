@@ -8,6 +8,7 @@ import TestResults from './TestResults';
 import TimerSelector from './TimerSelector';
 import WordDisplay from './WordDisplay';
 import ModeSelector from './ModeSelector';
+import { Link } from 'react-router-dom';
 
 export type TestStatus = 'idle' | 'running' | 'finished';
 
@@ -327,6 +328,9 @@ const TypingTest = () => {
           pointer-events: none;
         }
       `}</style>
+
+      <Link to='/game' className='absolute bottom-16 right-10 text-xs opacity-75 hover:opacity-90 transition-colors underline'>Try Game</Link>
+      
     </div>
   );
 };
