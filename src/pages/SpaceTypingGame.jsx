@@ -13,8 +13,8 @@ const LEVELS = [
   {
     id: 2,
     name: "Level 2: Faster",
-    words: ["react", "space", "rocket", "planet", "galaxy", "typing", "system", "asterik", "developer", "cellphone", "sticker", "donut", "xavier", "winnner", "jailbreak"],
-    spawnInterval: 1400,
+    words: ["react", "space", "rocket", "planet", "galaxy", "typing", "system", "asterik", "developer", "cellphone", "sticker", "donut", "xavier", "winner", "jailbreak"],
+    spawnInterval: 1600,
     speed: 65,
     requiredKills: 20,
   },
@@ -43,8 +43,8 @@ const LEVELS = [
       "telemetry",
       "chronometer"
     ],
-    spawnInterval: 1100,
-    speed: 80,
+    spawnInterval: 1500,
+    speed: 70,
     requiredKills: 30,
   },
 ];
